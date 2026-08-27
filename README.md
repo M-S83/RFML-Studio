@@ -22,7 +22,15 @@ Product documentation is versioned with the codebase (see `docs/`):
 
 ## Current phase
 
-**Phase 1 — Technology Spike 01: Direct Manipulation + Live 3D T Shirt.**
+**Phase 2 — Core Project Engine: complete.** The application lives in
+[`app/`](app/): projects with persistent Studio identities, autosave,
+exact reopen (the §7 exit condition, verified headless), version snapshots,
+duplicate design, asset storage, sources with rights status, and element
+provenance — on top of the Phase 1 direct-manipulation canvas and live 3D
+tee. Next: **Phase 3 — V1 Visual Lab** (grouping, masks, crop, richer
+typography and mobile workspace polish).
+
+### Phase 1 — Technology Spike 01 (done)
 
 Before building the production application, small prototypes must choose the 2D canvas foundation (Konva, Fabric.js, Polotno) and prove live 2D → 3D texture mapping on a UV-mapped GLB T shirt, with mobile direct manipulation as the primary acceptance test. No archive or advanced creative features until the core interaction and 3D loop are proven.
 

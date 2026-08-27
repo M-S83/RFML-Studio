@@ -51,7 +51,48 @@ Phase 2 objects) drive the canvas as the single source of truth, matching
 "2D and 3D share one design". Fabric's in-place text editing is the pattern
 to port. Full findings: spikes/spike-01/README.md.
 
-## D-005 — (next decision)
+## D-005 — Application shell: Vite SPA now, Next.js reconsidered when a backend arrives
+
+**Date:** 2026-08-27
+**Status:** Active
+
+The plan names React with Next.js as the default shell candidate (§4). Phase 2
+has no server side — persistence is client-local — so the app starts as a Vite
+single-page application: faster to build against, nothing to deploy. When
+authentication and remote storage arrive (Supabase candidate), revisit whether
+the shell moves to Next.js or stays an SPA over an API.
+
+## D-006 — Persistence: IndexedDB adapter behind the store API
+
+**Date:** 2026-08-27
+**Status:** Active
+
+Phase 2 persistence is IndexedDB (projects, assets, meta counters) accessed
+only through `app/src/engine/store.js`; `storage/local.js` is the single file
+that knows the backend. Supabase (the plan's storage candidate) can replace
+the adapter without touching the app. Assets are stored once by id and never
+overwritten — provenance originals stay intact.
+
+## D-007 — Phase 2 working answers to the §15 data model questions
+
+**Date:** 2026-08-27
+**Status:** Active — each answer can be superseded individually
+
+1. A Design begins with a garment template reference (`tshirt-v1`) but its
+   artwork lives on Surfaces, so re-targeting later stays possible.
+2. Elements do not carry their own transformation history in V1; history
+   lives in Version snapshots.
+3. Cross-surface objects: not represented yet — one Element belongs to one
+   Surface until unwrapped mode (V2).
+4. Immutable in provenance: Source records (frozen at creation) and the
+   Extraction→Source link (constructor rejects an extraction without one).
+5. Failed experiments: deferred to the V2 experiment tree.
+6. Rights states from day one: unknown, research_only, cleared, rfml_original.
+7. Internal resolution: 640-unit surface space, resolution-independent
+   transforms; production export multiplies out (export pipeline is Phase 6).
+8. 3D garment assets belong to a global template library, not to projects.
+
+## D-008 — (next decision)
 
 **Date:**
 **Status:**
