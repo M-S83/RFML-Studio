@@ -2,6 +2,8 @@
 
 Creative research, design and production environment for **Reggae Framed My Life**.
 
+**Live app:** https://m-s83.github.io/RFML-Studio/ (deployed from `main` by GitHub Actions)
+
 RFML Studio connects research, visual analysis, experimentation, original design, physical production and permanent archive. 2D artwork and live 3D garments are two views of the same project data, and every visual element keeps its provenance — the system can always answer *"where did this come from?"*.
 
 The core creative loop the first milestone must prove:
