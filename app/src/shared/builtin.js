@@ -16,3 +16,50 @@ const vinylSvg = `
 
 export const VINYL_SRC =
   'data:image/svg+xml;utf8,' + encodeURIComponent(vinylSvg.trim())
+
+// Basic textures (Phase 3), generated once per session in the browser.
+// Grain: monochrome noise, meant for 'overlay'/'soft-light' blending.
+// Halftone: dot grid, meant for 'multiply'.
+function makeCanvas(size) {
+  const c = document.createElement('canvas')
+  c.width = size
+  c.height = size
+  return c
+}
+
+let grainUrl = null
+export function grainTexture() {
+  if (grainUrl) return grainUrl
+  const c = makeCanvas(320)
+  const ctx = c.getContext('2d')
+  const img = ctx.createImageData(320, 320)
+  for (let i = 0; i < img.data.length; i += 4) {
+    const v = 96 + Math.floor(Math.random() * 128)
+    img.data[i] = img.data[i + 1] = img.data[i + 2] = v
+    img.data[i + 3] = 255
+  }
+  ctx.putImageData(img, 0, 0)
+  grainUrl = c.toDataURL('image/png')
+  return grainUrl
+}
+
+let halftoneUrl = null
+export function halftoneTexture() {
+  if (halftoneUrl) return halftoneUrl
+  const c = makeCanvas(320)
+  const ctx = c.getContext('2d')
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, 320, 320)
+  ctx.fillStyle = '#111111'
+  const step = 10
+  for (let y = 0; y < 320; y += step) {
+    for (let x = 0; x < 320; x += step) {
+      const r = 1.2 + 2.4 * Math.abs(Math.sin((x + y) / 41))
+      ctx.beginPath()
+      ctx.arc(x + step / 2, y + step / 2, r, 0, Math.PI * 2)
+      ctx.fill()
+    }
+  }
+  halftoneUrl = c.toDataURL('image/png')
+  return halftoneUrl
+}

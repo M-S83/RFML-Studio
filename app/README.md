@@ -31,6 +31,28 @@ browser via IndexedDB — no backend yet.
 - The Phase 1 editor and live 3D tee carry over: direct manipulation canvas
   (Konva) with the live-texture Object Mode view.
 
+## What works (Phase 3 — V1 Visual Lab, Development Plan §8)
+
+- **Grouping** — Multi mode (or shift-click) builds a selection; Group wraps
+  it into a group element, Ungroup dissolves it with composed transforms.
+- **Layers panel** — stack order top-first with per-layer visibility and lock
+  toggles; click to select (robust selection even for covered objects).
+- **Crop** — image elements get a crop mode (move/resize the region, Apply);
+  crops compose and are stored in source-image pixels.
+- **Basic masks** — circle and rounded-rect clip masks on images.
+- **Opacity + blend** — per element; multiply/overlay/screen/soft-light/difference.
+- **Typography** — font selection, size, tracking, leading, colour, outline,
+  shadow; double-click/tap a text element to edit it in place.
+- **Image upload** — straight into the canvas via the asset store.
+- **Basic texture** — generated grain (overlay) and halftone (multiply)
+  full-bleed texture elements.
+- **Copy/paste + keyboard** — Ctrl/Cmd C/V, Ctrl/Cmd Z / Shift-Z, Delete, Escape.
+- **Mobile workspace** — canvas-dominant layout, collapsible panels,
+  forgiving touch targets.
+
+All Phase 3 properties persist through the Phase 2 engine (regression-checked:
+reload restores identical state).
+
 ## Architecture
 
 ```

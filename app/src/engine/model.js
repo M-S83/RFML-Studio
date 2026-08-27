@@ -71,6 +71,19 @@ export function newSurface(surfaceId) {
   return { id: surfaceId, elements: [] }
 }
 
+// Visual defaults added in Phase 3. normalizeElement() backfills them onto
+// elements persisted before the fields existed.
+export const ELEMENT_VISUAL_DEFAULTS = {
+  opacity: 1,
+  visible: true,
+  mask: null,              // null | 'circle' | 'rounded' (image elements)
+  blend: null,             // null | multiply | overlay | screen | ...
+  letterSpacing: 0,        // text tracking
+  shadowOn: false,
+  shadowColor: '#000000',
+  crop: null,              // {x,y,width,height} in source-image pixels
+}
+
 export function newElement(props) {
   const classification = props.classification || 'rfml_created'
   if (!CLASSIFICATIONS.includes(classification)) {
@@ -78,7 +91,7 @@ export function newElement(props) {
   }
   return {
     id: uid(),
-    kind: props.kind,        // rect | frame | text | image
+    kind: props.kind,        // rect | frame | text | image | group
     name: props.name || props.kind,
     x: props.x ?? 0, y: props.y ?? 0,
     rotation: props.rotation ?? 0,
@@ -87,13 +100,26 @@ export function newElement(props) {
     classification,          // source_material | rfml_created | rfml_transformed
     sourceIds: props.sourceIds ? [...props.sourceIds] : [],  // provenance links
     assetId: props.assetId ?? null,
+    ...ELEMENT_VISUAL_DEFAULTS,
+    ...Object.fromEntries(
+      Object.keys(ELEMENT_VISUAL_DEFAULTS)
+        .filter((k) => props[k] !== undefined)
+        .map((k) => [k, props[k]])
+    ),
     // kind-specific
     width: props.width, height: props.height,
     fill: props.fill, stroke: props.stroke, strokeWidth: props.strokeWidth,
     text: props.text, fontSize: props.fontSize, fontFamily: props.fontFamily,
     lineHeight: props.lineHeight,
     src: props.src,          // only for built-in (non-asset) images
+    children: props.kind === 'group' ? (props.children || []) : undefined,
   }
+}
+
+export function normalizeElement(e) {
+  const n = { ...ELEMENT_VISUAL_DEFAULTS, ...e }
+  if (n.kind === 'group') n.children = (e.children || []).map(normalizeElement)
+  return n
 }
 
 // Immutable snapshot of a design's working state.

@@ -22,13 +22,16 @@ Product documentation is versioned with the codebase (see `docs/`):
 
 ## Current phase
 
-**Phase 2 — Core Project Engine: complete.** The application lives in
-[`app/`](app/): projects with persistent Studio identities, autosave,
-exact reopen (the §7 exit condition, verified headless), version snapshots,
-duplicate design, asset storage, sources with rights status, and element
-provenance — on top of the Phase 1 direct-manipulation canvas and live 3D
-tee. Next: **Phase 3 — V1 Visual Lab** (grouping, masks, crop, richer
-typography and mobile workspace polish).
+**Phase 3 — V1 Visual Lab: complete.** The application lives in
+[`app/`](app/). On top of the Phase 2 engine (projects with persistent
+Studio identities, autosave, exact reopen, versions, provenance), the
+Visual Lab now covers the §8 set: grouping, layers panel with visibility
+and locking, crop, basic masks, opacity and blend modes, full typography
+controls with in-place editing, image upload, generated textures,
+copy/paste and keyboard shortcuts, and a canvas-dominant mobile
+workspace. Next: **Phase 4 — V1 Garment Lab** (front/back surface
+mapping, garment colour, view polish, high-quality preview capture) —
+best started once the commissioned T-shirt GLB (§16) exists.
 
 ### Phase 1 — Technology Spike 01 (done)
 

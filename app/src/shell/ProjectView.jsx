@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import CanvasEditor from '../visual-lab/CanvasEditor.jsx'
-import { VersionsPanel, SourcesPanel, ElementPanel } from './panels.jsx'
+import { VersionsPanel, SourcesPanel, ElementPanel, LayersPanel, PropertiesPanel } from './panels.jsx'
 import {
   loadProject, saveProject, addDesign, duplicateDesign,
   snapshotVersion, restoreVersion, addSource, putAsset, getAssetMap,
@@ -74,10 +74,15 @@ export default function ProjectView({ projectId, designId }) {
       elements: () =>
         design
           ? design.surfaces.front.elements.map((e) => ({
-              id: e.id, name: e.name, x: Math.round(e.x), y: Math.round(e.y),
+              id: e.id, name: e.name, kind: e.kind,
+              x: Math.round(e.x), y: Math.round(e.y),
               rotation: Math.round(e.rotation), scaleX: +e.scaleX.toFixed(3),
               classification: e.classification, sourceIds: [...e.sourceIds],
-              locked: e.locked,
+              locked: e.locked, visible: e.visible !== false,
+              opacity: e.opacity ?? 1, blend: e.blend ?? null, mask: e.mask ?? null,
+              cropped: !!e.crop, text: e.text,
+              letterSpacing: e.letterSpacing ?? 0, fontFamily: e.fontFamily,
+              children: e.kind === 'group' ? e.children.length : undefined,
             }))
           : null,
       versions: () => design?.versions.map((v) => v.label) || [],
@@ -179,21 +184,63 @@ export default function ProjectView({ projectId, designId }) {
     editorRef.current?.addExternalElement(el)
   }
 
+  const readFileAsDataUrl = (file) =>
+    new Promise((resolve, reject) => {
+      const r = new FileReader()
+      r.onload = () => resolve(r.result)
+      r.onerror = reject
+      r.readAsDataURL(file)
+    })
+
+  const imageSize = (dataUrl) =>
+    new Promise((resolve) => {
+      const i = new window.Image()
+      i.onload = () => resolve({ w: i.naturalWidth, h: i.naturalHeight })
+      i.onerror = () => resolve({ w: 240, h: 240 })
+      i.src = dataUrl
+    })
+
   const onAddSource = async ({ name, rightsStatus, file }) => {
     let assetId = null
     if (file) {
-      const dataUrl = await new Promise((resolve, reject) => {
-        const r = new FileReader()
-        r.onload = () => resolve(r.result)
-        r.onerror = reject
-        r.readAsDataURL(file)
-      })
+      const dataUrl = await readFileAsDataUrl(file)
       const asset = await putAsset(dataUrl, { name })
       assetId = asset.id
       setAssets((a) => ({ ...a, [assetId]: dataUrl }))
     }
     mutate((p) => addSource(p, { name, rightsStatus, assetId }))
   }
+
+  // Direct image upload from the Visual Lab toolbar: stored once as an asset,
+  // placed as an RFML-created element (reclassify from the Provenance panel
+  // if it is actually source material).
+  const onUploadImage = async (file) => {
+    const dataUrl = await readFileAsDataUrl(file)
+    const asset = await putAsset(dataUrl, { name: file.name })
+    setAssets((a) => ({ ...a, [asset.id]: dataUrl }))
+    scheduleSave()
+    const { w, h } = await imageSize(dataUrl)
+    const fit = Math.min(1, 320 / Math.max(w, h))
+    return newElement({
+      kind: 'image',
+      name: file.name.replace(/\.[a-z0-9]+$/i, ''),
+      x: 160, y: 160,
+      width: Math.max(40, w * fit), height: Math.max(40, h * fit),
+      assetId: asset.id,
+    })
+  }
+
+  const onToggleVisible = (el) =>
+    editorRef.current?.patchElement(el.id, { visible: el.visible === false })
+
+  const onToggleLock = (el) =>
+    editorRef.current?.patchElement(el.id, { locked: !el.locked })
+
+  const onSelectLayer = (id) => editorRef.current?.selectElement(id)
+
+  const onPatchElement = (id, patch) => editorRef.current?.patchElement(id, patch)
+
+  const onCropElement = (id) => editorRef.current?.beginCrop(id)
 
   return (
     <div>
@@ -210,8 +257,17 @@ export default function ProjectView({ projectId, designId }) {
         onCommit={onCommit}
         onSelectionChange={setSelectedElement}
         onThumbnail={onThumbnail}
+        onUploadImage={onUploadImage}
         sidePanels={
           <>
+            <PropertiesPanel element={selectedElement} onPatch={onPatchElement} onCrop={onCropElement} />
+            <LayersPanel
+              elements={design.surfaces.front.elements}
+              selectedId={selectedElement?.id || null}
+              onSelect={onSelectLayer}
+              onToggleVisible={onToggleVisible}
+              onToggleLock={onToggleLock}
+            />
             <VersionsPanel design={design} onSnapshot={onSnapshot} onRestore={onRestore} />
             <ElementPanel element={selectedElement} sources={project.sources} onClassify={onClassify} />
             <SourcesPanel

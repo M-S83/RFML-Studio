@@ -393,3 +393,57 @@ button:disabled { color: #a49d8f; border-color: #a49d8f; cursor: default; }
 .new-source-row { display: flex; gap: 6px; }
 .new-source-row select { flex: 0 0 40%; }
 .new-source-row input[type="file"] { font-size: 0.65rem; padding: 8px 4px; }
+
+/* ---- Phase 3: Visual Lab additions ---- */
+
+.toolbar button.active { background: #111; color: #fbf9f4; }
+
+.panel-toggle {
+  min-height: 24px !important;
+  width: 24px;
+  padding: 0 !important;
+  line-height: 1;
+}
+
+.layer-row { cursor: pointer; }
+.layer-row.selected { background: #efeadf; outline: 1px solid #111; }
+.layer-row button {
+  min-height: 26px;
+  width: 26px;
+  padding: 0;
+  font-size: 0.7rem;
+}
+
+.prop-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 10px;
+}
+
+.prop-field span { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.62rem; color: #6b675f; }
+.prop-field input[type="range"] { width: 100%; accent-color: #111; }
+.prop-field input[type="color"] { width: 100%; height: 30px; padding: 1px; border: 1px solid #111; background: #fbf9f4; }
+.prop-field select { width: 100%; min-height: 32px; padding: 4px 6px; }
+.prop-field button { min-height: 30px; }
+.prop-inline { display: flex; gap: 6px; align-items: center; }
+.prop-inline input[type="color"] { flex: 1; height: 28px; }
+.prop-inline input[type="checkbox"] { width: 18px; height: 18px; accent-color: #111; }
+
+.text-edit-overlay {
+  position: absolute;
+  z-index: 5;
+  background: rgba(20, 20, 26, 0.92);
+  border: 1px dashed #2f6fdc;
+  outline: none;
+  padding: 2px 4px;
+  margin: 0;
+  resize: none;
+  min-height: 2em;
+  font-weight: bold;
+  transform-origin: left top;
+}
+
+@media (max-width: 1019px) {
+  .toolbar { gap: 4px; }
+  .toolbar button { padding: 7px 8px; min-height: 40px; }
+}

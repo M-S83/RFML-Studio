@@ -92,7 +92,26 @@ overwritten — provenance originals stay intact.
    transforms; production export multiplies out (export pipeline is Phase 6).
 8. 3D garment assets belong to a global template library, not to projects.
 
-## D-008 — (next decision)
+## D-008 — Phase 3 Visual Lab scope decisions
+
+**Date:** 2026-08-27
+**Status:** Active
+
+- A group is an element kind holding child elements; ungrouping bakes the
+  group transform into the children. Layer stacks stay flat otherwise.
+- Basic masks are geometric clip shapes (circle, rounded rect) on images;
+  free-form and image-based masks are V2 territory.
+- Crop regions are element-axis-aligned and stored in source-image pixels,
+  composing across repeated crops; the original asset is never modified.
+- Basic texture = generated grain/halftone elements using blend modes, not a
+  material system — the §7 print-instability toolkit remains V2.
+- Text editing is an in-place overlay; per-letter manipulation (brief §8)
+  remains V2.
+- Two-finger pan/zoom of the canvas itself (brief §5A) is still not
+  implemented — the gesture layer targets the selected object; revisit with
+  the mobile hardware test.
+
+## D-009 — (next decision)
 
 **Date:**
 **Status:**
