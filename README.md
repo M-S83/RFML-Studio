@@ -26,6 +26,8 @@ Product documentation is versioned with the codebase (see `docs/`):
 
 Before building the production application, small prototypes must choose the 2D canvas foundation (Konva, Fabric.js, Polotno) and prove live 2D → 3D texture mapping on a UV-mapped GLB T shirt, with mobile direct manipulation as the primary acceptance test. No archive or advanced creative features until the core interaction and 3D loop are proven.
 
+The spike is built and running in [`spikes/spike-01/`](spikes/spike-01/) — both candidate editors pass the spec with the live 2D → 3D loop proven; Konva is provisionally recommended pending the mobile hardware test (see the spike README and Decision Log D-002…D-004).
+
 ## Project structure
 
 ```
