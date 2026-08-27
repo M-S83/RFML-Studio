@@ -17,7 +17,7 @@ export const RIGHTS_STATES = ['unknown', 'research_only', 'cleared', 'rfml_origi
 
 export const GARMENT_TEMPLATES = {
   // 3D garment assets belong to a global template library, not to projects.
-  'tshirt-v1': { id: 'tshirt-v1', name: 'T shirt (procedural spike asset)', surfaces: ['front'] },
+  'tshirt-v1': { id: 'tshirt-v1', name: 'T shirt (procedural spike asset)', surfaces: ['front', 'back'] },
 }
 
 export const GARMENT_COLOR = '#14141a'
@@ -40,6 +40,15 @@ export function newProject({ code, name }) {
   }
 }
 
+export function garmentBaseElement(color = GARMENT_COLOR) {
+  return newElement({
+    kind: 'rect',
+    name: 'Garment base',
+    x: 0, y: 0, width: SURFACE_SIZE.w, height: SURFACE_SIZE.h,
+    fill: color, locked: true, classification: 'rfml_created',
+  })
+}
+
 export function newDesign(project, { name, garmentTemplateId = 'tshirt-v1' } = {}) {
   const template = GARMENT_TEMPLATES[garmentTemplateId]
   if (!template) throw new Error(`Unknown garment template: ${garmentTemplateId}`)
@@ -48,6 +57,7 @@ export function newDesign(project, { name, garmentTemplateId = 'tshirt-v1' } = {
     projectId: project.id,   // Design belongs to Project
     name: name || `Design ${String(project.designs.length + 1).padStart(2, '0')}`,
     garmentTemplateId,
+    garmentColor: GARMENT_COLOR,   // project-linked garment colour (§9)
     createdAt: now(),
     updatedAt: now(),
     // Working state: one Surface per garment surface; each Surface holds the
@@ -56,15 +66,29 @@ export function newDesign(project, { name, garmentTemplateId = 'tshirt-v1' } = {
     versions: [],            // Version[] — immutable snapshots
     thumbnail: null,         // small dataURL captured on save
   }
-  design.surfaces.front.elements.push(
-    newElement({
-      kind: 'rect',
-      name: 'Garment base',
-      x: 0, y: 0, width: SURFACE_SIZE.w, height: SURFACE_SIZE.h,
-      fill: GARMENT_COLOR, locked: true, classification: 'rfml_created',
-    })
-  )
+  for (const s of template.surfaces) {
+    design.surfaces[s].elements.push(garmentBaseElement())
+  }
   return design
+}
+
+// Migration: designs saved before Phase 4 have only a front surface and no
+// garment colour. Returns true if anything changed.
+export function ensureDesignSurfaces(design) {
+  let changed = false
+  if (!design.garmentColor) {
+    design.garmentColor = GARMENT_COLOR
+    changed = true
+  }
+  const template = GARMENT_TEMPLATES[design.garmentTemplateId] || GARMENT_TEMPLATES['tshirt-v1']
+  for (const s of template.surfaces) {
+    if (!design.surfaces[s]) {
+      design.surfaces[s] = newSurface(s)
+      design.surfaces[s].elements.push(garmentBaseElement(design.garmentColor))
+      changed = true
+    }
+  }
+  return changed
 }
 
 export function newSurface(surfaceId) {

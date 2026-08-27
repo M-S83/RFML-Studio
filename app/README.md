@@ -53,6 +53,29 @@ browser via IndexedDB — no backend yet.
 All Phase 3 properties persist through the Phase 2 engine (regression-checked:
 reload restores identical state).
 
+## What works (Phase 4 — V1 Garment Lab, Development Plan §9)
+
+- **Front and back mapping** — FRONT/BACK tabs switch which surface the
+  canvas edits; each surface holds its own layer stack, and the 3D tee
+  carries both at once (the inactive surface renders live from a hidden
+  canvas). The back reads correctly — no mirroring.
+- **Project-linked garment colour** — one colour control drives the 3D body
+  and the locked "Garment base" rect on every surface.
+- **Sleeve support** — artwork extends onto the sleeve area of the
+  silhouette (full-silhouette print surfaces).
+- **High-quality preview capture** — Capture button downloads a PNG of the
+  current 3D view.
+- Orbit, zoom, Front/Back/Reset quick views carry over from the spike.
+- §9 acceptance: create artwork in 2D, rotate the shirt, inspect the result
+  without leaving the project — verified headless with independent
+  front/back artwork.
+- Existing designs migrate automatically (back surface + garment colour
+  added on first open).
+
+The tee is still the procedural placeholder for the commissioned GLB (§16);
+its architecture — body + separate per-surface print geometry — is the same
+shape the GLB's UV islands will take.
+
 ## Architecture
 
 ```

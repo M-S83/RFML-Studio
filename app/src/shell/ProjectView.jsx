@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react'
 import CanvasEditor from '../visual-lab/CanvasEditor.jsx'
+import { SurfaceRender } from '../visual-lab/renderElements.jsx'
+import TShirtViewer from '../garment-lab/TShirtViewer.jsx'
 import { VersionsPanel, SourcesPanel, ElementPanel, LayersPanel, PropertiesPanel } from './panels.jsx'
 import {
   loadProject, saveProject, addDesign, duplicateDesign,
   snapshotVersion, restoreVersion, addSource, putAsset, getAssetMap,
 } from '../engine/store.js'
-import { newElement } from '../engine/model.js'
+import { newElement, ensureDesignSurfaces, GARMENT_TEMPLATES } from '../engine/model.js'
 
 const fmtTime = (iso) => iso?.replace('T', ' ').slice(0, 19) || ''
 
@@ -25,7 +27,10 @@ export default function ProjectView({ projectId, designId }) {
   const [resetCounter, setResetCounter] = useState(0)
   const [selectedElement, setSelectedElement] = useState(null)
   const [missing, setMissing] = useState(false)
+  const [activeSurface, setActiveSurface] = useState('front')
   const editorRef = useRef(null)
+  const backRenderRef = useRef(null)
+  const versionRef = useRef(0)
   const saveTimer = useRef(null)
   const projectRef = useRef(null)
   projectRef.current = project
@@ -35,7 +40,11 @@ export default function ProjectView({ projectId, designId }) {
     loadProject(projectId).then(async (p) => {
       if (!alive) return
       if (!p) { setMissing(true); return }
+      // Migrate pre-Phase-4 designs (front-only, no garment colour).
+      let migrated = false
+      for (const d of p.designs) migrated = ensureDesignSurfaces(d) || migrated
       setProject(p)
+      if (migrated) await saveProject(p)
       setAssets(await getAssetMap(collectAssetIds(p)))
     })
     return () => { alive = false }
@@ -71,9 +80,12 @@ export default function ProjectView({ projectId, designId }) {
       projectId,
       designId,
       savedAt,
-      elements: () =>
-        design
-          ? design.surfaces.front.elements.map((e) => ({
+      activeSurface,
+      garmentColor: () => design?.garmentColor || null,
+      surfaces: () => (design ? Object.keys(design.surfaces) : []),
+      elements: (surface = activeSurface) =>
+        design?.surfaces[surface]
+          ? design.surfaces[surface].elements.map((e) => ({
               id: e.id, name: e.name, kind: e.kind,
               x: Math.round(e.x), y: Math.round(e.y),
               rotation: Math.round(e.rotation), scaleX: +e.scaleX.toFixed(3),
@@ -142,14 +154,56 @@ export default function ProjectView({ projectId, designId }) {
 
   const touchDesign = () => { design.updatedAt = new Date().toISOString() }
 
+  const surfaceIds = GARMENT_TEMPLATES[design.garmentTemplateId]?.surfaces || ['front']
+  const inactiveSurfaces = surfaceIds.filter((s) => s !== activeSurface)
+
   const onCommit = (elements) =>
     mutate(() => {
-      design.surfaces.front.elements = elements
+      design.surfaces[activeSurface].elements = elements
       touchDesign()
     })
 
-  const onThumbnail = (dataUrl) =>
+  const onThumbnail = (dataUrl) => {
+    // The design card thumbnail always tracks the front.
+    if (activeSurface !== 'front') return
     mutate(() => { design.thumbnail = dataUrl })
+  }
+
+  // Project-linked garment colour: drives the 3D body and the locked
+  // "Garment base" rect on every surface, so 2D and 3D stay one design.
+  const onGarmentColor = (color) => {
+    mutate(() => {
+      design.garmentColor = color
+      for (const sid of surfaceIds) {
+        if (sid === activeSurface) continue
+        const base = design.surfaces[sid]?.elements.find((e) => e.name === 'Garment base')
+        if (base) base.fill = color
+      }
+      touchDesign()
+    })
+    const activeBase = design.surfaces[activeSurface]?.elements.find((e) => e.name === 'Garment base')
+    if (activeBase) editorRef.current?.patchElement(activeBase.id, { fill: color })
+    versionRef.current++
+  }
+
+  const onCapture = (dataUrl) => {
+    window.__rfmlLastCapture = dataUrl
+    const a = document.createElement('a')
+    a.href = dataUrl
+    a.download = `${project.code.replace(' ', '-')}-${design.name.replace(/\s+/g, '-')}-object.png`
+    a.click()
+  }
+
+  const switchSurface = (sid) => {
+    if (sid === activeSurface) return
+    setActiveSurface(sid)
+    setSelectedElement(null)
+  }
+
+  const getSurfaceCanvas = (sid) =>
+    sid === activeSurface
+      ? editorRef.current?.getLiveCanvas() || null
+      : backRenderRef.current?.getCanvas() || null
 
   const onSnapshot = () => mutate(() => snapshotVersion(design))
 
@@ -247,22 +301,55 @@ export default function ProjectView({ projectId, designId }) {
       <div className="breadcrumb">
         <a href={`#/p/${project.id}`}>← {project.code} · {project.name}</a>
         <span className="k">{design.name}</span>
+        <span className="surface-tabs">
+          {surfaceIds.map((sid) => (
+            <button
+              key={sid}
+              className={sid === activeSurface ? 'active' : ''}
+              onClick={() => switchSurface(sid)}
+            >
+              {sid.toUpperCase()}
+            </button>
+          ))}
+        </span>
         <span className="save-indicator">{savedAt ? `SAVED ${fmtTime(savedAt).slice(11)}` : 'autosave on'}</span>
       </div>
+      {/* Hidden live renderer for the surface not being edited, so the 3D
+          garment shows both sides at once. (One inactive surface for the
+          T shirt; becomes a map when templates grow more surfaces.) */}
+      {inactiveSurfaces[0] && (
+        <SurfaceRender
+          key={inactiveSurfaces[0]}
+          ref={backRenderRef}
+          elements={design.surfaces[inactiveSurfaces[0]].elements}
+          assets={assets}
+          bumpRef={versionRef}
+        />
+      )}
       <CanvasEditor
         ref={editorRef}
-        elements={design.surfaces.front.elements}
-        resetKey={`${design.id}:${resetCounter}`}
+        elements={design.surfaces[activeSurface].elements}
+        resetKey={`${design.id}:${activeSurface}:${resetCounter}`}
         assets={assets}
         onCommit={onCommit}
         onSelectionChange={setSelectedElement}
         onThumbnail={onThumbnail}
         onUploadImage={onUploadImage}
+        versionRef={versionRef}
         sidePanels={
           <>
+            <TShirtViewer
+              getFrontCanvas={() => getSurfaceCanvas('front')}
+              getBackCanvas={() => getSurfaceCanvas('back')}
+              versionRef={versionRef}
+              garmentColor={design.garmentColor}
+              onGarmentColor={onGarmentColor}
+              onCapture={onCapture}
+              label={`EDITING ${activeSurface.toUpperCase()}`}
+            />
             <PropertiesPanel element={selectedElement} onPatch={onPatchElement} onCrop={onCropElement} />
             <LayersPanel
-              elements={design.surfaces.front.elements}
+              elements={design.surfaces[activeSurface].elements}
               selectedId={selectedElement?.id || null}
               onSelect={onSelectLayer}
               onToggleVisible={onToggleVisible}

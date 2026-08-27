@@ -447,3 +447,31 @@ button:disabled { color: #a49d8f; border-color: #a49d8f; cursor: default; }
   .toolbar { gap: 4px; }
   .toolbar button { padding: 7px 8px; min-height: 40px; }
 }
+
+/* ---- Phase 4: Garment Lab additions ---- */
+
+.surface-tabs { display: flex; gap: 4px; }
+.surface-tabs button {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.68rem;
+  padding: 5px 12px;
+  background: #fbf9f4;
+  color: #6b675f;
+  border: 1px solid #b9b3a6;
+  cursor: pointer;
+  min-height: 32px;
+}
+.surface-tabs button.active {
+  background: #111;
+  color: #fbf9f4;
+  border-color: #111;
+}
+
+.viewer-head .garment-color {
+  width: 34px;
+  height: 26px;
+  padding: 1px;
+  border: 1px solid #111;
+  background: #fbf9f4;
+  cursor: pointer;
+}

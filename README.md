@@ -24,16 +24,16 @@ Product documentation is versioned with the codebase (see `docs/`):
 
 ## Current phase
 
-**Phase 3 — V1 Visual Lab: complete.** The application lives in
-[`app/`](app/). On top of the Phase 2 engine (projects with persistent
-Studio identities, autosave, exact reopen, versions, provenance), the
-Visual Lab now covers the §8 set: grouping, layers panel with visibility
-and locking, crop, basic masks, opacity and blend modes, full typography
-controls with in-place editing, image upload, generated textures,
-copy/paste and keyboard shortcuts, and a canvas-dominant mobile
-workspace. Next: **Phase 4 — V1 Garment Lab** (front/back surface
-mapping, garment colour, view polish, high-quality preview capture) —
-best started once the commissioned T-shirt GLB (§16) exists.
+**Phase 4 — V1 Garment Lab: complete.** The application lives in
+[`app/`](app/) and runs live at https://m-s83.github.io/RFML-Studio/.
+On top of the Phase 2 engine and Phase 3 Visual Lab, the Garment Lab now
+covers the §9 set: independent front/back surface mapping with FRONT/BACK
+editing tabs (both sides live on the 3D tee at once), project-linked
+garment colour, sleeve coverage, orbit/zoom/quick views, and high-quality
+preview capture. The tee remains the procedural placeholder for the
+commissioned GLB (§16), built with the same body-plus-print-surfaces
+architecture the GLB will use. Next: **Phase 5 — Archive Foundation**
+(source metadata depth, palette extraction, searchable visual archive).
 
 ### Phase 1 — Technology Spike 01 (done)
 

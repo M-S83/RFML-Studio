@@ -1,49 +1,13 @@
 import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react'
 import { Stage, Layer, Group as KGroup, Rect, Text, Image as KImage, Transformer } from 'react-konva'
 import Konva from 'konva'
-import TShirtViewer from '../garment-lab/TShirtViewer.jsx'
 import { SURFACE_SIZE, newElement, normalizeElement } from '../engine/model.js'
 import { VINYL_SRC, grainTexture, halftoneTexture } from '../shared/builtin.js'
 import { useHistoryState } from '../shared/history.js'
 import { attachPinch } from '../shared/pinch.js'
+import { useHtmlImage, maskClipFunc, shadowProps } from './renderElements.jsx'
 
 const CANVAS = SURFACE_SIZE
-
-function useHtmlImage(src) {
-  const [img, setImg] = useState(null)
-  useEffect(() => {
-    if (!src) return
-    const i = new window.Image()
-    i.onload = () => setImg(i)
-    i.src = src
-  }, [src])
-  return img
-}
-
-function maskClipFunc(o) {
-  const w = o.width
-  const h = o.height
-  if (o.mask === 'circle') {
-    return (ctx) => {
-      ctx.beginPath()
-      ctx.ellipse(w / 2, h / 2, w / 2, h / 2, 0, 0, Math.PI * 2)
-      ctx.closePath()
-    }
-  }
-  if (o.mask === 'rounded') {
-    const r = Math.min(w, h) * 0.16
-    return (ctx) => {
-      ctx.beginPath()
-      ctx.moveTo(r, 0)
-      ctx.arcTo(w, 0, w, h, r)
-      ctx.arcTo(w, h, 0, h, r)
-      ctx.arcTo(0, h, 0, 0, r)
-      ctx.arcTo(0, 0, w, 0, r)
-      ctx.closePath()
-    }
-  }
-  return undefined
-}
 
 function SceneImage({ obj, src, common, onNatural }) {
   const img = useHtmlImage(src)
@@ -91,6 +55,7 @@ export default forwardRef(function CanvasEditor({
   onSelectionChange,
   onThumbnail,
   onUploadImage,
+  versionRef: externalVersionRef,
   sidePanels,
 }, ref) {
   const { state: objects, commit: commitState, undo, redo, reset } = useHistoryState(
@@ -109,7 +74,8 @@ export default forwardRef(function CanvasEditor({
   const cropRectRef = useRef(null)
   const wrapRef = useRef(null)
   const fileInputRef = useRef(null)
-  const versionRef = useRef(0)
+  const internalVersionRef = useRef(0)
+  const versionRef = externalVersionRef || internalVersionRef
   const justSelectedRef = useRef(false)
   const clipboardRef = useRef(null)
   const naturalsRef = useRef({})
@@ -205,6 +171,7 @@ export default forwardRef(function CanvasEditor({
     },
     selectElement: (id) => setSelectedIds(id ? [id] : []),
     beginCrop: (id) => beginCrop(id),
+    getLiveCanvas: () => contentLayerRef.current?.getCanvas()._canvas || null,
   }))
 
   // Two-finger pinch/twist on the primary selection.
@@ -513,11 +480,6 @@ export default forwardRef(function CanvasEditor({
     onTransformEnd: (e) => { if (e.target.id() === o.id) commitNodeAttrs(o.id, e.target) },
   })
 
-  const shadowProps = (o) =>
-    o.shadowOn
-      ? { shadowColor: o.shadowColor || '#000000', shadowBlur: 10, shadowOffsetX: 5, shadowOffsetY: 5, shadowOpacity: 0.7 }
-      : {}
-
   const renderElement = (o, inGroup = false) => {
     // Children inside a group render without ids/draggable; the group is the
     // interactive unit.
@@ -560,8 +522,6 @@ export default forwardRef(function CanvasEditor({
       )
     return null
   }
-
-  const getSourceCanvas = () => contentLayerRef.current?.getCanvas()._canvas || null
 
   // Text edit overlay geometry.
   const editNode = textEdit ? stageRef.current?.findOne('#' + textEdit.id) : null
@@ -681,7 +641,6 @@ export default forwardRef(function CanvasEditor({
       </div>
 
       <div className="side-col">
-        <TShirtViewer getSourceCanvas={getSourceCanvas} versionRef={versionRef} label="LIVE" />
         {sidePanels}
       </div>
     </div>

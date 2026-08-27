@@ -111,7 +111,22 @@ overwritten — provenance originals stay intact.
   implemented — the gesture layer targets the selected object; revisit with
   the mobile hardware test.
 
-## D-009 — (next decision)
+## D-009 — Phase 4 Garment Lab: separate print surfaces on the procedural tee
+
+**Date:** 2026-08-27
+**Status:** Active
+
+Rather than waiting for the commissioned GLB (§16), the procedural tee gained
+the architecture the GLB will need: a plain body mesh carrying the garment
+colour, plus one flat silhouette "print surface" per garment side with its
+own live texture. Front and back are therefore independent (no mirroring),
+and swapping in the real GLB later only replaces geometry — the per-surface
+texture pipeline stays. Consequences accepted for V1: prints are flat planes
+floating just off the body (no drape), and sleeves receive artwork as part of
+the silhouette rather than as separate surfaces. The design card thumbnail
+tracks the front surface only.
+
+## D-010 — (next decision)
 
 **Date:**
 **Status:**
